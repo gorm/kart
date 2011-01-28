@@ -1,0 +1,38 @@
+.smallmap {width: 300px; height: 300px; }
+.mediummap {width: 425px; height: 350px; }
+.largemap {width: 800px; height: 600px; }
+
+#OpenLayers.Control.Attribution_7 {display: none;}
+
+.olControlAttribution { display: none!important;}
+
+#map_info p {margin-top: 5px; margin-bottom:5px;}
+#map_wrap { float:left;}
+
+.buttons { padding-left: 5px;}
+
+#draw_cmds { width: 300px; height: 300px; }
+
+.buttons > div,.button {
+  display: inline;
+  -moz-border-radius: 3px 3px 3px 3px;
+  background: -moz-linear-gradient(center top , #F9F9F9, #E3E3E3) repeat scroll 0 0 transparent;
+  border-color: #CCCCCC #BBBBBB #A0A0A0;
+  border-left: 1px solid #BBBBBB;
+  border-right: 1px solid #BBBBBB;
+  border-style: solid;
+  border-width: 1px;
+  color: #000000;
+  cursor: default;
+  font: 80% arial,sans-serif;
+  margin: 0 8px 0 0;
+  outline: medium none;
+  text-align: center;
+  vertical-align: middle;
+  white-space: nowrap;
+}
+
+
+
+
+

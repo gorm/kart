@@ -51,7 +51,7 @@ function drawShapesOnMap() {
 function populateView(currentZoomLevel) {
 	// zoom select
 	var select = $('#zoom_levels');
-	for (var i = 1; i < gMap.numZoomLevels; i++) {
+	for (var i = 0; i < gMap.numZoomLevels; i++) {
 		var option = $("<option />").val(i).text(i);
 		if (currentZoomLevel == i) { option.attr('selected', "selected"); } 
 		select.append(option);
@@ -154,6 +154,5 @@ function main() {
 	populateView(gMap.getZoom());
 	initViewEventHandlers();
 }
-
 
 $(main);

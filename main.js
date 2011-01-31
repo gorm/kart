@@ -2,6 +2,7 @@
 var gProj = null;
 var gMap = null;
 var gPolygonLayer = null;
+var gCenterPointFeature = null; 
 var gZoomLevel = 1;
 
 var debug = {
@@ -38,7 +39,6 @@ function drawShapesOnMap() {
 			function(wkt) {
 				if (wkt) {
 					// TODO: throw error if wrong syntax
-					console.log("Parsing: '" + wkt + "'");
 					var feature = wktParser.read(wkt);
 					feature.styleMap = highlightStyleMap;
 					// TODO: is on map?
@@ -72,9 +72,17 @@ function initViewEventHandlers() {
 
 	$('#center_btn').click(
 		function() {
+			// this obscure regexp is for catching floats
 			var parts = $('#center_point').val().match(/([-+]?[0-9]*\.?[0-9]+)\s+([-+]?[0-9]*\.?[0-9]+)/);
-			console.log(parts[1] + " " + parts[2]);
 			gMap.setCenter(new OpenLayers.LonLat(parts[1], parts[2]));
+			// Lets also draw this new center point
+			if (gCenterPointFeature) {
+				gPolygonLayer.removeFeatures([gCenterPointFeature]);
+			}
+			var point = new OpenLayers.Geometry.Point(parts[1], parts[2]);
+			gCenterPointFeature = new OpenLayers.Feature.Vector(point);
+			gCenterPointFeature.styleMap = highlightStyleMap;
+			gPolygonLayer.addFeatures([gCenterPointFeature]);
 		}
 	);
 

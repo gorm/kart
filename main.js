@@ -1,8 +1,8 @@
-
 var gProj = null;
 var gMap = null;
 var gPolygonLayer = null;
 var gCenterPointFeature = null; 
+var gMarkers = null;
 var gZoomLevel = 1;
 
 var debug = {
@@ -58,6 +58,54 @@ function populateView(currentZoomLevel) {
 	}
 }
 
+function eraseMarkersAndPopups() {
+	for (var i = 0; i < gMarkers.markers.length; i++) {
+		gMarkers.removeMarker(gMarkers.markers[i]);
+	}
+	
+	for (var i = 0; i < gMap.popups.length; i++) {
+		gMap.removePopup(gMap.popups[i]);
+	}
+}
+
+function drawMarkerAndPopup(lonLat, type, content) {
+	var f = new OpenLayers.Feature(gMarkers, lonLat);
+	f.closeBox = true;
+	f.popupClass = type;
+	f.data.popupContentHTML = content;
+	f.data.overflow = "hidden";
+	
+    //Set marker icon
+    var size = new OpenLayers.Size(21,25);
+    var offset = new OpenLayers.Pixel(-(size.w/2), -size.h);
+    var icon = new OpenLayers.Icon('http://www.openlayers.org/dev/img/marker.png', size, offset);
+    f.data.icon = icon;
+
+	var m = f.createMarker();
+	gMarkers.addMarker(m);
+
+	// cheat
+	var popup = new type("poppy", lonLat, null, content, icon, true, function() {
+							 eraseMarkersAndPopups();
+						 });
+
+	popup.marker = m;
+	gMap.addPopup(popup);
+	popup.show();
+
+}
+
+function drawCenterPoint() {
+	// this obscure regexp is for catching floats
+	var parts = $('#center_point').val().match(/([-+]?[0-9]*\.?[0-9]+)\s+([-+]?[0-9]*\.?[0-9]+)/);
+	var centerLL = new OpenLayers.LonLat(parts[1], parts[2]);
+
+	gMap.setCenter(centerLL);
+	
+	eraseMarkersAndPopups();
+	drawMarkerAndPopup(centerLL, OpenLayers.Popup.FramedCloud, "center");
+}
+
 function initViewEventHandlers() {
 	$('#draw_btn').click(
 		function() {
@@ -72,17 +120,7 @@ function initViewEventHandlers() {
 
 	$('#center_btn').click(
 		function() {
-			// this obscure regexp is for catching floats
-			var parts = $('#center_point').val().match(/([-+]?[0-9]*\.?[0-9]+)\s+([-+]?[0-9]*\.?[0-9]+)/);
-			gMap.setCenter(new OpenLayers.LonLat(parts[1], parts[2]));
-			// Lets also draw this new center point
-			if (gCenterPointFeature) {
-				gPolygonLayer.removeFeatures([gCenterPointFeature]);
-			}
-			var point = new OpenLayers.Geometry.Point(parts[1], parts[2]);
-			gCenterPointFeature = new OpenLayers.Feature.Vector(point);
-			gCenterPointFeature.styleMap = highlightStyleMap;
-			gPolygonLayer.addFeatures([gCenterPointFeature]);
+			drawCenterPoint();
 		}
 	);
 
@@ -128,9 +166,12 @@ function loadMap() {
 
 	var polygonLayer = new OpenLayers.Layer.Vector("PolygonLayer");
 	gPolygonLayer = polygonLayer;
+
+	gMarkers = new OpenLayers.Layer.Markers("Center point marker");
+	gMarkers.displayInLayerSwitcher = false;
 	
 	// ADD LAYERS (overlay and map)
-	gMap.addLayers([topo2, polygonLayer]);
+	gMap.addLayers([topo2, polygonLayer, gMarkers]);
 
 	OpenLayers.IMAGE_RELOAD_ATTEMPTS = 3;
 	

@@ -14,21 +14,22 @@
   </head>
   <body>
 	<div id="map_wrap">
-	  <div id="map" class="largemap"></div>
+	  <div id="map" class="mediummap"></div>
 	  <div id="map_info">
 		<p>Zoom info: <span id="zoom_level">?</span></p>
 		<p>Center: <span id="center_lonlat">?</span></p>
 		<p>Bounds: <span id="bounds_lonlat">?</span></p>
 	  </div>
 	</div>
+	
 	<div id="draw_wrap">
-	  <textarea id="draw_cmds">POLYGON((259001 6727292.5,317223 6662300.5,223797 6612202.5,259001 6727292.5))
-	  </textarea>
+	  <label for="draw_cmds">Shapes (WKT format):</label>
+	  <textarea id="draw_cmds">POLYGON((259001 6727292.5,317223 6662300.5,223797 6612202.5,259001 6727292.5))</textarea>
 	  <div class="buttons">
 		<div id="draw_btn" role="button">Draw</div> <div id="clear_btn" role="button">Clear</div>
 	  </div>
-	  <div>Senterpunkt: <input id="center_point"> <div id="center_btn" class="button" role="button">Center</div>
-	  <div>Zoom nivå:<select id="zoom_levels"></select></div>
+	  <div>Senterpunkt: <input id="center_point"> <div id="center_btn" class="button" role="button">Center</div></div>
+	  <div>Zoom nivå:<select id="zoom_levels"><option/></select></div>
 	</div>
   </body>
 </html>

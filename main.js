@@ -75,11 +75,11 @@ function drawMarkerAndPopup(lonLat, type, content) {
 	f.data.popupContentHTML = content;
 	f.data.overflow = "hidden";
 	
-    //Set marker icon
-    var size = new OpenLayers.Size(21,25);
-    var offset = new OpenLayers.Pixel(-(size.w/2), -size.h);
-    var icon = new OpenLayers.Icon('http://www.openlayers.org/dev/img/marker.png', size, offset);
-    f.data.icon = icon;
+	//Set marker icon
+	var size = new OpenLayers.Size(21,25);
+	var offset = new OpenLayers.Pixel(-(size.w/2), -size.h);
+	var icon = new OpenLayers.Icon('http://www.openlayers.org/dev/img/marker.png', size, offset);
+	f.data.icon = icon;
 
 	var m = f.createMarker();
 	gMarkers.addMarker(m);

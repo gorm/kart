@@ -6,8 +6,11 @@
 
 .olControlAttribution { display: none!important;}
 
-#map_info p {margin-top: 5px; margin-bottom:5px;}
-#map_wrap { float:left;}
+#map_info p { margin-top: 5px; margin-bottom:5px; font-size: 0.7em;  }
+
+#draw_wrap label { display: block; }
+
+#map_wrap { float:left; }
 
 .buttons { padding-left: 5px;}
 

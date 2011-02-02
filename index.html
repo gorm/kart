@@ -12,9 +12,9 @@
 	<script type="text/javascript" src="style.js"></script>
 	<script type="text/javascript" src="main.js"></script>
   </head>
-  <body>
+  <body class="mediummap">
 	<div id="map_wrap">
-	  <div id="map" class="mediummap"></div>
+	  <div id="map"></div>
 	  <div id="map_info">
 		<p>Zoom info: <span id="zoom_level">?</span></p>
 		<p>Center: <span id="center_lonlat">?</span></p>
@@ -28,8 +28,12 @@
 	  <div class="buttons">
 		<div id="draw_btn" role="button">Draw</div> <div id="clear_btn" role="button">Clear</div>
 	  </div>
-	  <div>Senterpunkt: <input id="center_point"> <div id="center_btn" class="button" role="button">Center</div></div>
-	  <div>Zoom nivå:<select id="zoom_levels"><option/></select></div>
+	  <label for="center_point">Senterpunkt:</label>
+	  <input id="center_point" /> <div id="center_btn" class="button" role="button">Center</div>
+	  <label for="zoom_levels">Zoom nivå:</label>
+	  <select id="zoom_levels"></select> 
+	  <label for="map_size">Størrelse på kart:</label>
+	  <select id="map_size"></select>
 	</div>
   </body>
 </html>

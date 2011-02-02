@@ -5,6 +5,8 @@ var gCenterPointFeature = null;
 var gMarkers = null;
 var gZoomLevel = 1;
 
+var gMapClasses = ["smallmap", "mediummap", "largemap"];
+
 var debug = {
 	dontLoadMap : false
 };
@@ -56,14 +58,22 @@ function populateView(currentZoomLevel) {
 		if (currentZoomLevel == i) { option.attr('selected', "selected"); } 
 		select.append(option);
 	}
+
+	select = $('#map_size');
+	for (var i = 0; i < gMapClasses.length; i++) {
+		var option = $("<option />").val(gMapClasses[i]).text(gMapClasses[i]);
+		if ($('body').hasClass(gMapClasses[i])) { option.attr('selected', "selected"); }
+		select.append(option);
+	}
 }
 
 function eraseMarkersAndPopups() {
-	for (var i = 0; i < gMarkers.markers.length; i++) {
+	var i;
+	for (i = 0; i < gMarkers.markers.length; i++) {
 		gMarkers.removeMarker(gMarkers.markers[i]);
 	}
 	
-	for (var i = 0; i < gMap.popups.length; i++) {
+	for (i = 0; i < gMap.popups.length; i++) {
 		gMap.removePopup(gMap.popups[i]);
 	}
 }
@@ -92,6 +102,14 @@ function drawMarkerAndPopup(lonLat, type, content) {
 	popup.marker = m;
 	gMap.addPopup(popup);
 	popup.show();
+
+}
+
+function panToCenter() {
+	var parts = $('#center_point').val().match(/([-+]?[0-9]*\.?[0-9]+)\s+([-+]?[0-9]*\.?[0-9]+)/);
+	var centerLL = new OpenLayers.LonLat(parts[1], parts[2]);
+
+	gMap.setCenter(centerLL);
 
 }
 
@@ -127,6 +145,14 @@ function initViewEventHandlers() {
 	$('#zoom_levels').change( 
 		function() {
 			gMap.zoomTo($(this).val());
+		}
+	);
+
+	$('#map_size').change(
+		function() {
+			$('body').removeClass(gMapClasses.join(" "));
+			$('body').addClass($(this).val());
+			panToCenter();
 		}
 	);
 }

@@ -1,6 +1,14 @@
-.smallmap {width: 300px; height: 300px; }
-.mediummap {width: 425px; height: 350px; }
-.largemap {width: 800px; height: 600px; }
+body { width: 1000px; }
+
+.smallmap #map {width: 300px; height: 300px; }
+.mediummap #map {width: 425px; height: 350px; }
+.largemap #map {width: 600px; height: 600px; }
+
+.smallmap #draw_wrap { padding-left: 300px; }
+.mediummap #draw_wrap { padding-left: 425px; }
+.largemap #draw_wrap { padding-left: 800px; }
+
+#map_wrap { margin-right: 20px; }
 
 #OpenLayers.Control.Attribution_7 {display: none;}
 
@@ -14,7 +22,7 @@
 
 .buttons { padding-left: 5px;}
 
-#draw_cmds { width: 300px; height: 300px; }
+#draw_cmds { width:90%;height: 200px; }
 
 .buttons > div,.button {
   display: inline;
@@ -27,7 +35,7 @@
   border-width: 1px;
   color: #000000;
   cursor: default;
-  font: 80% arial,sans-serif;
+  font: 1em arial,sans-serif;
   margin: 0 8px 0 0;
   outline: medium none;
   text-align: center;

@@ -37,8 +37,7 @@ function drawShapesOnMap() {
 
 	if (t) {
 		var wkts = t.split(/\s*\n+\s*/);
-		wkts.forEach(
-			function(wkt) {
+		$.each(wkts, function(i, wkt) {
 				if (wkt) {
 					// TODO: throw error if wrong syntax
 					var feature = wktParser.read(wkt);
@@ -46,7 +45,7 @@ function drawShapesOnMap() {
 					// TODO: is on map?
 					gPolygonLayer.addFeatures([feature]);
 				}
-			});
+			   });
 	}
 }
 

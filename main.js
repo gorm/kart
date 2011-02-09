@@ -4,6 +4,7 @@ var gPolygonLayer = null;
 var gCenterPointFeature = null; 
 var gMarkers = null;
 var gZoomLevel = 1;
+var gCenterPoint = null;
 
 var gMapClasses = ["smallmap", "mediummap", "largemap"];
 
@@ -19,12 +20,13 @@ function onMapZoom() {
 }
 
 function onMapMove() {
-	var c = gMap.getCenter();
+	var c = gCenterPoint = gMap.getCenter();
 	var b = gMap.calculateBounds();
 	$('#center_lonlat').text(c.lon + "," + c.lat);
 	$('#bounds_lonlat').text(b.left + "," + b.bottom + "," + 
 							 b.right + "," + b.top);
 	$('#center_point').val(c.lon + " " + c.lat);
+
 }
 
 function clearShapesFromMap() {
@@ -156,7 +158,6 @@ function initViewEventHandlers() {
 	);
 }
 
-
 function loadMap() {
 	gProj  = new OpenLayers.Projection("EPSG:4326"); //Lat,Lng from Geolocation API
 
@@ -175,28 +176,41 @@ function loadMap() {
 		moveend: function() {
 			onMapMove();
 		},
+        changebaselayer: function(layer) {
+			console.log("layer changed to " + layer.layer.name);
+/*			if (layer.layer.name == "OpenStreetMap") {
+				
+				var p = new OpenLayers.Projection("EPSG:900913");
+				gMap.setCenter(gCenterPoint.transform(p), gMap.getProjectionObject());
+			}*/
+		},
 		removelayer: function(layer) {
-			//console.log("Layer removed");
+//			console.log("Layer removed");
 		},
 		changelayer: function(event) {
-			//console.log("Layer changed");
+			console.log("Layer changed");
 		}
+					   
 	});
 
+	// Statens Kartverk
 	var topo2 = new OpenLayers.Layer.WMS(
 	   "Topografisk norgeskart2","http://opencache.statkart.no/gatekeeper/gk/gk.open?",
 	   {layers: 'topo2', 
 		format: 'image/jpeg'},
 		{attribution:'<a href="http://www.statkart.no">Statens kartverk</a>, <a href="http://www.statkart.no/nor/Land/Fagomrader/Geovekst/">Geovekst</a> og <a href="http://www.statkart.no/?module=Articles;action=Article.publicShow;ID=14194">kommuner</a>'});
 
+	// For drawing 
 	var polygonLayer = new OpenLayers.Layer.Vector("PolygonLayer");
 	gPolygonLayer = polygonLayer;
 
 	gMarkers = new OpenLayers.Layer.Markers("Center point marker");
 	gMarkers.displayInLayerSwitcher = false;
-	
+
+	var osm = new OpenLayers.Layer.OSM();
+
 	// ADD LAYERS (overlay and map)
-	gMap.addLayers([topo2, polygonLayer, gMarkers]);
+	gMap.addLayers([topo2, osm, polygonLayer, gMarkers]);
 
 	OpenLayers.IMAGE_RELOAD_ATTEMPTS = 3;
 	

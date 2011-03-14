@@ -4,6 +4,7 @@ var gPolygonLayer = null;
 var gCenterPointFeature = null; 
 var gMarkers = null;
 var gZoomLevel = 1;
+var gMapData = {};
 
 var gMapClasses = ["smallmap", "mediummap", "largemap"];
 
@@ -16,6 +17,8 @@ function onMapZoom() {
 	$('#zoom_levels option:selected').attr('selected', '');
 	$('#zoom_levels option[value=\'' + gMap.getZoom() + '\']').
 		attr('selected', 'selected');
+
+	gMapData['zoomLevel'] = gMap.getZoom();
 }
 
 function onMapMove() {
@@ -25,6 +28,8 @@ function onMapMove() {
 	$('#bounds_lonlat').text(b.left + "," + b.bottom + "," + 
 							 b.right + "," + b.top);
 	$('#center_point').val(c.lon + " " + c.lat);
+
+	gMapData['centerPoint'] = c.lon + " " + c.lat;
 }
 
 function clearShapesFromMap() {
@@ -32,7 +37,7 @@ function clearShapesFromMap() {
 }
 
 function drawShapesOnMap() {
-	var t = $('#draw_cmds').val();
+	var t = gMapData.drawCommands;
 	var wktParser = new OpenLayers.Format.WKT();
 
 	if (t) {
@@ -59,7 +64,7 @@ function populateView(currentZoomLevel) {
 	}
 
 	select = $('#map_size');
-	for (var i = 0; i < gMapClasses.length; i++) {
+	for (i = 0; i < gMapClasses.length; i++) {
 		var option = $("<option />").val(gMapClasses[i]).text(gMapClasses[i]);
 		if ($('body').hasClass(gMapClasses[i])) { option.attr('selected', "selected"); }
 		select.append(option);
@@ -105,7 +110,7 @@ function drawMarkerAndPopup(lonLat, type, content) {
 }
 
 function panToCenter() {
-	var parts = $('#center_point').val().match(/([-+]?[0-9]*\.?[0-9]+)\s+([-+]?[0-9]*\.?[0-9]+)/);
+	var parts = gMapData.centerPoint.match(/([-+]?[0-9]*\.?[0-9]+)\s+([-+]?[0-9]*\.?[0-9]+)/);
 	var centerLL = new OpenLayers.LonLat(parts[1], parts[2]);
 
 	gMap.setCenter(centerLL);
@@ -114,7 +119,7 @@ function panToCenter() {
 
 function drawCenterPoint() {
 	// this obscure regexp is for catching floats
-	var parts = $('#center_point').val().match(/([-+]?[0-9]*\.?[0-9]+)\s+([-+]?[0-9]*\.?[0-9]+)/);
+	var parts = gMapData.centerPoint.match(/([-+]?[0-9]*\.?[0-9]+)\s+([-+]?[0-9]*\.?[0-9]+)/);
 	var centerLL = new OpenLayers.LonLat(parts[1], parts[2]);
 
 	gMap.setCenter(centerLL);
@@ -122,6 +127,7 @@ function drawCenterPoint() {
 	eraseMarkersAndPopups();
 	drawMarkerAndPopup(centerLL, OpenLayers.Popup.FramedCloud, "center");
 }
+
 
 function initViewEventHandlers() {
 	$('#draw_btn').click(
@@ -144,6 +150,7 @@ function initViewEventHandlers() {
 	$('#zoom_levels').change( 
 		function() {
 			gMap.zoomTo($(this).val());
+			gMapData['zoomLevel'] = $(this).val();
 		}
 	);
 
@@ -156,8 +163,15 @@ function initViewEventHandlers() {
 	);
 }
 
+function loadMapData() {
+	gMapData['centerPoint'] = $('#center_point').val();
+	gMapData['zoomLevel'] = $('#zoom_levels').val();
+	gMapData['drawCommands'] = $('#draw_cmds').val();
+}
 
 function loadMap() {
+	loadMapData();
+
 	gProj  = new OpenLayers.Projection("EPSG:4326"); //Lat,Lng from Geolocation API
 
 	var mapProjection = new OpenLayers.Projection("EPSG:32633");

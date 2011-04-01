@@ -1,23 +1,28 @@
-var gProj = null;
+new function() {
+//var gProj = null;
 var gMap = null;
 var gPolygonLayer = null;
 var gCenterPointFeature = null; 
 var gMarkers = null;
 var gZoomLevel = 1;
-var gMapData = {};
+var gMapData = {
+	commandLines : []
+};
+var gBeforePopup = null;
 
 var gMapClasses = ["smallmap", "mediummap", "largemap"];
+var gSelectControl = null;
 
 var debug = {
 	dontLoadMap : false
 };
 
 function onMapZoom() {
-	$('#zoom_level').text("1:" + Math.round(gMap.getScale()));
+/*	$('#zoom_level').text("1:" + Math.round(gMap.getScale()));
 	$('#zoom_levels option:selected').attr('selected', '');
 	$('#zoom_levels option[value=\'' + gMap.getZoom() + '\']').
 		attr('selected', 'selected');
-
+*/
 	gMapData['zoomLevel'] = gMap.getZoom();
 }
 
@@ -36,21 +41,44 @@ function clearShapesFromMap() {
 	gPolygonLayer.removeAllFeatures();
 }
 
-function drawShapesOnMap() {
-	var t = gMapData.drawCommands;
+function drawShapeOnMap(shape) {
 	var wktParser = new OpenLayers.Format.WKT();
+	var feature = null;
 
-	if (t) {
-		var wkts = t.split(/\s*\n+\s*/);
-		$.each(wkts, function(i, wkt) {
-				if (wkt) {
-					// TODO: throw error if wrong syntax
-					var feature = wktParser.read(wkt);
-					feature.styleMap = highlightStyleMap;
-					// TODO: is on map?
-					gPolygonLayer.addFeatures([feature]);
+	if (! shape['_feature'] && ! shape['disabled']) {
+		feature = wktParser.read(shape.wkt);
+		feature.styleMap = highlightStyleMap;
+		gPolygonLayer.addFeatures([feature]);
+		shape['_feature'] = feature;
+	}
+
+	return feature;
+}
+
+function drawShapesOnMap(drawOnlyActiveShapes) {
+	for (var i = 0; i < gMapData['commandLines'].length; i++) {
+		var isDisabled = gMapData['commandLines'][i]['disabled'];
+		var showOnLoad = gMapData['commandLines'][i]['show'];
+		var feature = gMapData['commandLines'][i]['_feature']; // alredy drawn?
+
+		if (false === isDisabled) {
+			if ( ! drawOnlyActiveShapes || (drawOnlyActiveShapes && false != showOnLoad)) {
+				// only draw this shape if not alreayd on map				
+				if (! feature) {
+					feature = drawShapeOnMap(gMapData['commandLines'][i]);
 				}
-			   });
+
+				// store the popup text if present
+				if (gMapData['commandLines'][i]['html']) {
+					feature['_html'] = gMapData['commandLines'][i]['html'];
+				}
+
+				// Programatically select the feature
+				if (showOnLoad) {
+					gSelectControl.select(feature);
+				}
+			}
+		}
 	}
 }
 
@@ -114,7 +142,6 @@ function panToCenter() {
 	var centerLL = new OpenLayers.LonLat(parts[1], parts[2]);
 
 	gMap.setCenter(centerLL);
-
 }
 
 function drawCenterPoint() {
@@ -131,7 +158,8 @@ function drawCenterPoint() {
 
 function initViewEventHandlers() {
 	$('#draw_btn').click(
-		function() {
+		function() {	
+			loadMapData();
 			drawShapesOnMap();
 		});
 
@@ -167,35 +195,116 @@ function loadMapData() {
 	gMapData['centerPoint'] = $('#center_point').val();
 	gMapData['zoomLevel'] = $('#zoom_levels').val();
 	gMapData['drawCommands'] = $('#draw_cmds').val();
+
+	var lines = gMapData['drawCommands'].split(/\n/);
+	for (var i = 0; i < lines.length; i++) {
+		var cmds = lines[i].split(/\|/);
+		gMapData['commandLines'].push( 
+			{wkt : cmds[0],
+			 html : cmds[1],
+			 show : (cmds[2] && cmds[2] != "0") ? true : false,
+			 disabled : (cmds[3] && cmds[3] != "0") ? true : false
+			} );
+	}
 }
 
-function loadMap() {
+function createMap() {
+	var mapProjection = new OpenLayers.Projection("EPSG:32633");
+   	var map = new OpenLayers.Map( 
+		'map', {
+			projection: mapProjection,
+  			maxExtent: new OpenLayers.Bounds(-2500000.0,3500000.0,3045984.0,9045984.0),
+   			units: "m",
+   			maxResolution: 2708.0, // tilsvarer zoom level 3 (hele er 21664.0)
+   			numZoomLevels: 15 // egentlig 21, men maxResolution tilsvarer zoom level 3 (f¿lgelig er 0-3 skrudd av)
+		});
+	
+	map.events.on(
+		{ 
+			zoomend: function() {
+				onMapZoom();
+			},
+			moveend: function() {
+				onMapMove();
+			},
+			removelayer: function(layer) {
+				//console.log("Layer removed");
+			},
+			changelayer: function(event) {
+				//console.log("Layer changed");
+			}
+		});
+
+	return map;
+}
+
+function createPolygonSelectFeature() {
+	var selectControl = new OpenLayers.Control.SelectFeature(
+		gPolygonLayer, 
+		{
+            clickout: true, toggle: false,
+            multiple: false, hover: false,
+            toggleKey: "ctrlKey", // ctrl key removes from selection
+            multipleKey: "shiftKey" // shift key adds to selection
+		}
+	);
+	gSelectControl = selectControl;
+
+	gMap.addControl(selectControl);
+	selectControl.activate();
+	
+	gPolygonLayer.events.on({
+      featureselected: function(evt) {
+		  var feature = evt.feature;
+		  if (feature['_html']) {
+			  createPopup(feature, feature['_html']);
+		  }
+      },
+      "featureunselected": function(evt){
+          var feature = evt.feature;
+    	  if (feature.popup) {
+        	  gMap.removePopup(feature.popup);
+        	  feature.popup.destroy();
+        	  feature.popup = null;
+    	  }
+		  gMap.panTo(gBeforePopup);
+
+      }
+    });
+}
+
+function createPopup(feature, html) {
+	gBeforePopup = feature.geometry.getBounds().getCenterLonLat();
+
+    function onPopupClose() {
+		gMap.removePopup(this);
+		this.feature.popup = null;
+		gSelectControl.unselect(this.feature);
+		this.destroy();
+	}
+
+	var popup = new OpenLayers.Popup.FramedCloud("PolygonPopup",
+                   								 feature.geometry.getBounds().getCenterLonLat(),
+												 null,
+												 html + " " + new Date(),
+												 null,
+                   								 true, onPopupClose);
+          
+    popup.panMapIfOutOfView = true;
+    popup.autoSize = true;
+    popup.opacity = 0.8;
+    
+    feature.popup = popup;
+    popup.feature = feature;
+    gMap.addPopup(popup);
+}
+
+function loadMap(){ 
 	loadMapData();
 
 	gProj  = new OpenLayers.Projection("EPSG:4326"); //Lat,Lng from Geolocation API
 
-	var mapProjection = new OpenLayers.Projection("EPSG:32633");
-   	gMap = new OpenLayers.Map( 'map', {
-  		projection: mapProjection,
-  		maxExtent: new OpenLayers.Bounds(-2500000.0,3500000.0,3045984.0,9045984.0),
-   		units: "m",
-   		maxResolution: 2708.0, // tilsvarer zoom level 3 (hele er 21664.0)
-   		numZoomLevels: 15 // egentlig 21, men maxResolution tilsvarer zoom level 3 (f¿lgelig er 0-3 skrudd av)
-	});
-	gMap.events.on({
-		zoomend: function() {
-			onMapZoom();
-		},
-		moveend: function() {
-			onMapMove();
-		},
-		removelayer: function(layer) {
-			//console.log("Layer removed");
-		},
-		changelayer: function(event) {
-			//console.log("Layer changed");
-		}
-	});
+	gMap = createMap();
 
 	var topo2 = new OpenLayers.Layer.WMS(
 	   "Topografisk norgeskart2","http://opencache.statkart.no/gatekeeper/gk/gk.open?",
@@ -203,27 +312,31 @@ function loadMap() {
 		format: 'image/jpeg'},
 		{attribution:'<a href="http://www.statkart.no">Statens kartverk</a>, <a href="http://www.statkart.no/nor/Land/Fagomrader/Geovekst/">Geovekst</a> og <a href="http://www.statkart.no/?module=Articles;action=Article.publicShow;ID=14194">kommuner</a>'});
 
-	var polygonLayer = new OpenLayers.Layer.Vector("PolygonLayer");
-	gPolygonLayer = polygonLayer;
+	gPolygonLayer = new OpenLayers.Layer.Vector("PolygonLayer");
 
 	gMarkers = new OpenLayers.Layer.Markers("Center point marker");
 	gMarkers.displayInLayerSwitcher = false;
 	
 	// ADD LAYERS (overlay and map)
-	gMap.addLayers([topo2, polygonLayer, gMarkers]);
+	gMap.addLayers([topo2, gPolygonLayer, gMarkers]);
 
 	OpenLayers.IMAGE_RELOAD_ATTEMPTS = 3;
 	
 	// Add needed controls 
-	gMap.addControl(new OpenLayers.Control.LayerSwitcher());
+	//	gMap.addControl(new OpenLayers.Control.LayerSwitcher());
 	gMap.addControl(new OpenLayers.Control.ZoomBox());
+	gMap.addControl(new OpenLayers.Control.ScaleLine({maxWidth:150}));
 
-	// Adding draw feature
-	gMap.addControl(new OpenLayers.Control.DrawFeature(polygonLayer, OpenLayers.Handler.Polygon));
+	// Adding draw feature (not sure about second param, but polygon seems to work)
+	gMap.addControl(new OpenLayers.Control.DrawFeature(gPolygonLayer, 
+													   OpenLayers.Handler.Polygon));
 
    	gMap.zoomToMaxExtent();
 	gMap.setCenter(new OpenLayers.LonLat(314289,7159862));
-
+	
+	createPolygonSelectFeature();
+	drawShapesOnMap(true);
+	
 	// Reset debug data
 	onMapZoom();
 	onMapMove();
@@ -236,3 +349,4 @@ function main() {
 }
 
 $(main);
+}();

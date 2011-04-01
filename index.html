@@ -4,27 +4,32 @@
 	<meta charset="utf-8">
 	<title>Map demo</title>
 	<link rel="stylesheet" href="style.css" type="text/css">	
+	<link rel="stylesheet" href="jquery-linedtextarea.css" type="text/css">	
 	<script type="text/javascript" src="proj4js/lib/proj4js.js"></script>
 	<script type="text/javascript" src="lib/defs/EPSG32633.js"></script>
 	<script type="text/javascript" src="lib/defs/EPSG4326.js"></script>
-	<script type="text/javascript" src="http://openlayers.org/api/OpenLayers.js"></script>
+	<script type="text/javascript" src="OpenLayers.js"></script>
 	<script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/1.4.4/jquery.js"></script>
 	<script type="text/javascript" src="style.js"></script>
 	<script type="text/javascript" src="main.js"></script>
   </head>
   <body class="mediummap">
 	<div id="map_wrap">
-	  <div id="map"></div>
-	  <div id="map_info">
+	  <div id="map"><noscript></noscript></div>
+<!--	  <div id="map_info">
 		<p>Zoom info: <span id="zoom_level">?</span></p>
 		<p>Center: <span id="center_lonlat">?</span></p>
 		<p>Bounds: <span id="bounds_lonlat">?</span></p>
 	  </div>
+-->
 	</div>
 	
 	<div id="draw_wrap">
 	  <label for="draw_cmds">Shapes (WKT format):</label>
-	  <textarea id="draw_cmds">POLYGON((259001 6727292.5,317223 6662300.5,223797 6612202.5,259001 6727292.5))</textarea>
+	  <textarea id="draw_cmds">POLYGON((259001 6727292.5,317223 6662300.5,223797 6612202.5,259001 6727292.5))|Tekst
+POLYGON((-32109 6721876.5,20020 6755049.5,143234 6714429.5,103291 6584445.5,-40910 6665685.5,-32109 6721876.5))|Tekst 2|1
+LINESTRING(-15861 6767912.5,326701 6847798.5)|Test123|1|0
+</textarea>
 	  <div class="buttons">
 		<div id="draw_btn" role="button">Draw</div> <div id="clear_btn" role="button">Clear</div>
 	  </div>

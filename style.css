@@ -1,11 +1,11 @@
 body { width: 1000px; }
 
 .smallmap #map {width: 300px; height: 300px; }
-.mediummap #map {width: 425px; height: 350px; }
+.mediummap #map {width: 540px; height: 350px; }
 .largemap #map {width: 600px; height: 600px; }
 
 .smallmap #draw_wrap { padding-left: 300px; }
-.mediummap #draw_wrap { padding-left: 425px; }
+.mediummap #draw_wrap { padding-left: 540px; }
 .largemap #draw_wrap { padding-left: 800px; }
 
 #map_wrap { margin-right: 20px; }
@@ -42,6 +42,9 @@ body { width: 1000px; }
   vertical-align: middle;
   white-space: nowrap;
 }
+
+/** form */
+
 
 
 
